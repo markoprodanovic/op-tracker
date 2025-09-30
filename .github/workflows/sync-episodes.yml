@@ -1,47 +1,47 @@
 name: Sync One Piece Episodes
 
 on:
-  # Run daily at midnight UTC
+  # Run Monday, 12:00 AM UTC
   schedule:
-    - cron: '0 0 * * *'
-  
+    - cron: "0 0 * * 1"
+
   # Allow manual trigger for testing
   workflow_dispatch:
 
 jobs:
   sync-episodes:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-        cache: 'pip'
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    
-    - name: Run episode sync
-      env:
-        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-        ONE_PIECE_API_BASE_URL: https://api.api-onepiece.com/v2
-        LOG_LEVEL: INFO
-      run: |
-        python -m src.main
-    
-    - name: Upload logs on failure
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: sync-logs
-        path: |
-          *.log
-          logs/
-        retention-days: 7
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run episode sync
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          ONE_PIECE_API_BASE_URL: https://api.api-onepiece.com/v2
+          LOG_LEVEL: INFO
+        run: |
+          python -m src.main
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sync-logs
+          path: |
+            *.log
+            logs/
+          retention-days: 7
