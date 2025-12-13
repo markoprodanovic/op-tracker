@@ -11,7 +11,7 @@ This module contains the core business logic that:
 
 import asyncio
 from typing import List, Set
-from datetime import datetime
+from datetime import datetime, timezone
 from loguru import logger
 
 from src.config import config
@@ -76,7 +76,7 @@ class EpisodeTracker:
             "api_healthy": False,
             "database_healthy": False,
             "overall_healthy": False,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
         try:
@@ -172,7 +172,7 @@ class EpisodeTracker:
             Dictionary with sync statistics and results
         """
         logger.info("Starting episode sync process...")
-        self.sync_stats["sync_start_time"] = datetime.utcnow()
+        self.sync_stats["sync_start_time"] = datetime.now(timezone.utc)
 
         try:
             # Step 1: Fetch episodes from API
@@ -257,7 +257,7 @@ class EpisodeTracker:
 
     def _finalize_sync_stats(self) -> dict:
         """Finalize sync statistics and return them."""
-        self.sync_stats["sync_end_time"] = datetime.utcnow()
+        self.sync_stats["sync_end_time"] = datetime.now(timezone.utc)
 
         # Calculate duration
         if self.sync_stats["sync_start_time"]:
@@ -292,7 +292,7 @@ class EpisodeTracker:
             episodes_missing = valid_api_count - db_stats["total_episodes"]
 
             report = {
-                "report_timestamp": datetime.utcnow().isoformat(),
+                "report_timestamp": datetime.now(timezone.utc).isoformat(),
                 "api_status": {
                     "total_episodes_available": api_episodes_count,
                     "valid_episodes_available": valid_api_count,
