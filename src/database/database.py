@@ -2,8 +2,8 @@ from typing import List, Optional, Set
 from supabase import create_client, Client
 from loguru import logger
 
-from src.config import config
-from src.models import EpisodeForDB, EpisodeFromDB, DBEpisodeList
+from ..config import config
+from ..models import EpisodeForDB, EpisodeFromDB, DBEpisodeList
 
 
 class DatabaseError(Exception):

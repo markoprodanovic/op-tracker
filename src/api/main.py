@@ -14,10 +14,10 @@ from typing import List, Set
 from datetime import datetime
 from loguru import logger
 
-from src.config import config
-from src.api_client import OnePieceAPIClient, OnePieceAPIError
-from src.database import EpisodeDatabase, DatabaseError
-from src.models import EpisodeForDB, APIEpisodeList
+from ..config import config
+from .api_client import OnePieceAPIClient, OnePieceAPIError
+from ..database.database import EpisodeDatabase, DatabaseError
+from ..models import EpisodeForDB, APIEpisodeList
 
 
 class EpisodeTrackerError(Exception):
@@ -400,7 +400,7 @@ async def main():
 
         if 'database_stats' in sync_result:
             db_stats = sync_result['database_stats']
-            print(f"\nDatabase now contains:")
+            print("\nDatabase now contains:")
             print(f"- Total episodes: {db_stats['total_episodes']}")
             print(f"- Episode range: {db_stats['earliest_episode']} to {db_stats['latest_episode']}")
             print(f"- Date range: {db_stats['earliest_release_date']} to {db_stats['latest_release_date']}")

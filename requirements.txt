@@ -2,3 +2,6 @@ supabase
 python-dotenv
 pydantic
 loguru
+httpx
+beautifulsoup4
+lxml

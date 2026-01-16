@@ -25,11 +25,11 @@ class Saga(BaseModel):
     saga_episode: str   # Episode range
 
 
-class Arc(BaseModel):
+class APIArc(BaseModel):
     """
-    Represents a One Piece story arc.
+    Represents a One Piece story arc from the API.
 
-    An arc is a story segment within a saga.
+    An arc is a story segment within a saga (API format).
     """
     id: int
     title: str
@@ -51,7 +51,7 @@ class EpisodeFromAPI(BaseModel):
     number: str = Field(description="Episode number in format 'n°X'")
     chapter: str = Field(description="Chapter reference in format 'Chap X'")
     release_date: str = Field(description="Release date in YYYY-MM-DD format")
-    arc: Optional[Arc] = None  # Made optional to handle missing data
+    arc: Optional[APIArc] = None  # Made optional to handle missing data
     saga: Optional[Saga] = None  # Made optional to handle missing data
 
     @field_validator('release_date')
@@ -172,3 +172,127 @@ class EpisodeFromDB(BaseModel):
 # Type aliases for clarity
 APIEpisodeList = list[EpisodeFromAPI]
 DBEpisodeList = list[EpisodeForDB]
+
+
+# New models for web scraping feature
+
+class Arc(BaseModel):
+    """
+    Represents a One Piece story arc from the database.
+
+    Used for managing broad story arcs and episode range assignments.
+    """
+    id: int
+    name: str
+    start_episode: int
+    end_episode: int
+    description: Optional[str] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+
+class ScrapedEpisode(BaseModel):
+    """
+    Represents an episode as scraped from animefillerlist.com.
+
+    This model matches the raw data we extract from the website.
+    """
+    id: int  # Episode number from website
+    title: str
+    airdate: Optional[date] = None  # May be None if not available
+
+    @field_validator('title')
+    @classmethod
+    def validate_title(cls, v):
+        """Ensure title is not empty."""
+        if not v or not v.strip():
+            raise ValueError('Episode title cannot be empty')
+        return v.strip()
+
+
+class ScrapedEpisodeForDB(BaseModel):
+    """
+    Represents a scraped episode ready for database storage.
+
+    This includes the arc_id assignment for database insertion.
+    """
+    id: int  # Episode number
+    title: str
+    airdate: Optional[date] = None
+    arc_id: Optional[int] = None  # Will be assigned based on episode number
+
+    @classmethod
+    def from_scraped_episode(
+        cls,
+        scraped_episode: ScrapedEpisode,
+        arc_id: Optional[int] = None
+    ) -> 'ScrapedEpisodeForDB':
+        """
+        Convert a scraped episode to a database-ready episode.
+
+        Args:
+            scraped_episode: Raw episode data from scraper
+            arc_id: Arc ID to assign (will be determined by episode number if not provided)
+
+        Returns:
+            ScrapedEpisodeForDB: Episode ready for database insertion
+        """
+        return cls(
+            id=scraped_episode.id,
+            title=scraped_episode.title,
+            airdate=scraped_episode.airdate,
+            arc_id=arc_id
+        )
+
+    def to_dict(self) -> dict:
+        """
+        Convert the episode to a dictionary for database insertion.
+
+        Returns:
+            dict: Episode data ready for database insertion
+        """
+        data = {
+            'id': self.id,
+            'title': self.title,
+            'arc_id': self.arc_id
+        }
+
+        # Only include airdate if it's available
+        if self.airdate:
+            data['airdate'] = self.airdate.isoformat()
+
+        return data
+
+
+class ScrapedEpisodeFromDB(BaseModel):
+    """
+    Represents a scraped episode as retrieved from the database.
+
+    Includes database-specific fields like timestamps and arc information.
+    """
+    id: int
+    title: str
+    airdate: Optional[date] = None
+    arc_id: Optional[int] = None
+    arc_name: Optional[str] = None  # From joined query with arcs table
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+    @field_validator('airdate', mode='before')
+    @classmethod
+    def parse_airdate(cls, v):
+        """Parse airdate from database."""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            try:
+                from datetime import datetime
+                return datetime.fromisoformat(v.replace('Z', '+00:00')).date()
+            except ValueError:
+                return None
+        return v
+
+
+# Type aliases for scraped data
+ScrapedEpisodeList = list[ScrapedEpisode]
+ScrapedDBEpisodeList = list[ScrapedEpisodeForDB]

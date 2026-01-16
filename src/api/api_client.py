@@ -3,8 +3,8 @@ from typing import Optional
 import httpx
 from loguru import logger
 
-from src.config import config
-from src.models import EpisodeFromAPI, APIEpisodeList
+from ..config import config
+from ..models import EpisodeFromAPI, APIEpisodeList
 
 
 class OnePieceAPIError(Exception):

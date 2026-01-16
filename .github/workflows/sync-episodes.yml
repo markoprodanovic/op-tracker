@@ -27,14 +27,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run episode sync
+      - name: Run web scraping sync
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           ONE_PIECE_API_BASE_URL: https://api.api-onepiece.com/v2
           LOG_LEVEL: INFO
         run: |
-          python -m src.main
+          python main.py scrape
 
       - name: Upload logs on failure
         if: failure()
